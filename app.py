@@ -54,10 +54,20 @@ def board():
 @socketio.on('connect')
 def connect():
     print("Connected:", request.sid)
+
+    # ALWAYS send clean, sorted data
+    sorted_data = sorted(buzz_order, key=lambda x: x["time"])
+
+    result = []
+    for i, t in enumerate(sorted_data):
+        result.append({
+            "team": t["team"],
+            "rank": i + 1
+        })
+
     socketio.emit('team_list', registered)
     socketio.emit('buzzer_state', buzzer_enabled)
-    socketio.emit('update', buzz_order)
-
+    socketio.emit('update', result)
 
 @socketio.on('disconnect')
 def disconnect():
@@ -93,6 +103,8 @@ def toggle():
 
 @socketio.on('buzz')
 def buzz():
+    global buzz_order
+
     if not buzzer_enabled:
         return
 
@@ -100,16 +112,30 @@ def buzz():
     if not team:
         return
 
-    if team in [t['team'] for t in buzz_order]:
+    # prevent duplicate
+    if any(t['team'] == team for t in buzz_order):
         return
 
+    # store only time + team
     buzz_order.append({
         "team": team,
-        "rank": len(buzz_order)+1,
         "time": time.time()
     })
 
-    socketio.emit('update', buzz_order)
+    # sort by time
+    sorted_data = sorted(buzz_order, key=lambda x: x["time"])
+
+    # create clean ranked list
+    result = []
+    for i, t in enumerate(sorted_data):
+        result.append({
+            "team": t["team"],
+            "rank": i + 1
+        })
+
+    print("RESULT:", result)
+
+    socketio.emit('update', result)
 
 
 @socketio.on('reset')
