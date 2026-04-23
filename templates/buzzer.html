@@ -15,33 +15,24 @@
 </button>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script>
-const socket = io();
-const team="{{ team }}";
-let enabled=false;
+const socket = io({
+  transports: ["polling", "websocket"]
+});
 
-socket.emit("register",{team});
+const team = "{{ team }}";
+let enabled = false;
+
+socket.emit("register", {team});
 
 socket.on("buzzer_state", s=>{
-  enabled=s;
-  const btn=document.getElementById("btn");
-  const st=document.getElementById("status");
-
-  if(s){
-    st.innerText="GO";
-    btn.disabled=false;
-    btn.className="w-40 h-40 rounded-full bg-red-600";
-  }else{
-    st.innerText="LOCKED";
-    btn.disabled=true;
-    btn.className="w-40 h-40 rounded-full bg-gray-600";
-  }
+  enabled = s;
 });
 
 function buzz(){
   if(!enabled) return;
   socket.emit("buzz");
-  document.getElementById("status").innerText="BUZZED";
 }
 </script>
 </body>
