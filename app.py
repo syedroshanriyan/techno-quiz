@@ -1,12 +1,10 @@
 from flask import Flask, render_template, request, redirect, session
 from flask_socketio import SocketIO
-import time
-import os
+import time, os
 
 app = Flask(__name__)
 app.secret_key = "secret123"
 
-# ⚠️ DO NOT add async_mode or eventlet
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 teams = {}
@@ -14,8 +12,6 @@ registered = []
 buzz_order = []
 buzzer_enabled = False
 
-
-# ---------------- ROUTES ---------------- #
 
 @app.route('/')
 def index():
@@ -53,12 +49,11 @@ def board():
     return render_template('board.html')
 
 
-# ---------------- SOCKET EVENTS ---------------- #
+# ---------------- SOCKET ---------------- #
 
 @socketio.on('connect')
 def connect():
     print("Connected:", request.sid)
-
     socketio.emit('team_list', registered)
     socketio.emit('buzzer_state', buzzer_enabled)
     socketio.emit('update', buzz_order)
@@ -67,19 +62,16 @@ def connect():
 @socketio.on('disconnect')
 def disconnect():
     print("Disconnected:", request.sid)
-
     if request.sid in teams:
         team = teams.pop(request.sid)
         if team in registered:
             registered.remove(team)
-
     socketio.emit('team_list', registered)
 
 
 @socketio.on('register')
 def register(data):
     team = data.get('team')
-
     if not team:
         return
 
@@ -105,7 +97,6 @@ def buzz():
         return
 
     team = teams.get(request.sid)
-
     if not team:
         return
 
@@ -114,7 +105,7 @@ def buzz():
 
     buzz_order.append({
         "team": team,
-        "rank": len(buzz_order) + 1,
+        "rank": len(buzz_order)+1,
         "time": time.time()
     })
 
@@ -129,7 +120,6 @@ def reset():
 
 
 # ---------------- RUN ---------------- #
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
