@@ -40,29 +40,45 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-const socket = io();
-
-socket.on("team_list", t=>{
-  document.getElementById("teams").innerHTML=t.join("<br>");
+const socket = io({
+  transports: ["polling", "websocket"]
 });
 
-socket.on("buzzer_state", s=>{
-  const st=document.getElementById("state");
-  const btn=document.getElementById("toggleBtn");
+socket.on("connect", () => {
+  console.log("CONNECTED", socket.id);
+});
 
-  if(s){
+socket.on("team_list", (teams) => {
+  const box = document.getElementById("teams");
+
+  if (!teams.length) {
+    box.innerHTML = "No teams yet";
+    return;
+  }
+
+  box.innerHTML = teams.map((t,i)=>`${i+1}. ${t}`).join("<br>");
+});
+
+socket.on("buzzer_state", (state) => {
+  const st = document.getElementById("state");
+  const btn = document.getElementById("toggleBtn");
+
+  if(state){
     st.innerText="UNLOCKED";
     btn.innerText="LOCK";
-    btn.className="mt-4 w-full bg-red-600 p-3 rounded";
   }else{
     st.innerText="LOCKED";
     btn.innerText="UNLOCK";
-    btn.className="mt-4 w-full bg-green-600 p-3 rounded";
   }
 });
 
-function toggle(){ socket.emit("toggle"); }
-function reset(){ socket.emit("reset"); }
+function toggle(){
+  socket.emit("toggle");
+}
+
+function reset(){
+  socket.emit("reset");
+}
 </script>
 </body>
 </html>
