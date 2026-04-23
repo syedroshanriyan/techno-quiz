@@ -11,15 +11,32 @@
 <div id="list"></div>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
 <script>
 const socket = io({
-  transports: ["polling", "websocket"],
-  upgrade: true
+  transports: ["polling", "websocket"]
 });
 
-socket.on("update", data=>{
-  document.getElementById("list").innerHTML =
-    data.map(x=>`${x.rank}. ${x.team}`).join("<br>");
+// ✅ force sync on connect
+socket.on("connect", () => {
+  console.log("Connected:", socket.id);
+
+  // 🔥 THIS LINE FIXES YOUR ISSUE
+  socket.emit("request_update");
+});
+
+// debug
+socket.on("update", (data) => {
+  console.log("UPDATE RECEIVED:", data);
+
+  const list = document.getElementById("list");
+
+  if (!data || data.length === 0) {
+    list.innerHTML = "No buzz yet";
+    return;
+  }
+
+  list.innerHTML = data.map(x => `${x.rank}. ${x.team}`).join("<br>");
 });
 </script>
 </body>
