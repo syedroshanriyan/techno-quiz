@@ -51,11 +51,8 @@ def board():
 
 # ---------------- SOCKET ---------------- #
 
-@socketio.on('connect')
-def connect():
-    print("Connected:", request.sid)
-
-    # ALWAYS send clean, sorted data
+@socketio.on('request_update')
+def request_update():
     sorted_data = sorted(buzz_order, key=lambda x: x["time"])
 
     result = []
@@ -65,8 +62,6 @@ def connect():
             "rank": i + 1
         })
 
-    socketio.emit('team_list', registered)
-    socketio.emit('buzzer_state', buzzer_enabled)
     socketio.emit('update', result)
 
 @socketio.on('disconnect')
