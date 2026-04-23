@@ -101,20 +101,24 @@ def buzz():
         return
 
     team = teams.get(request.sid)
+
     if not team:
         return
 
     if team in [t['team'] for t in buzz_order]:
         return
 
-    buzz_order.append({
+    entry = {
         "team": team,
         "rank": len(buzz_order)+1,
         "time": time.time()
-    })
+    }
+
+    buzz_order.append(entry)
+
+    print("BUZZ:", entry)   # 🔥 MUST PRINT
 
     socketio.emit('update', buzz_order)
-
 
 @socketio.on('reset')
 def reset():
