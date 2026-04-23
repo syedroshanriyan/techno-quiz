@@ -97,34 +97,43 @@ def toggle():
 
 @socketio.on('buzz')
 def buzz():
+    global buzz_order
+
     if not buzzer_enabled:
         return
 
     team = teams.get(request.sid)
-
     if not team:
         return
 
-    if team in [t['team'] for t in buzz_order]:
+    # prevent duplicate buzz
+    if any(t['team'] == team for t in buzz_order):
         return
 
-    entry = {
+    # store with timestamp
+    buzz_order.append({
         "team": team,
-        "rank": len(buzz_order)+1,
         "time": time.time()
-    }
+    })
 
-    buzz_order.append(entry)
+    # sort by time (fastest first)
+    buzz_order = sorted(buzz_order, key=lambda x: x["time"])
 
-    print("BUZZ:", entry)   # 🔥 MUST PRINT
+    # assign rank
+    result = []
+    for i, t in enumerate(buzz_order):
+        result.append({
+            "team": t["team"],
+            "rank": i + 1
+        })
 
-    socketio.emit('update', buzz_order)
+    socketio.emit('update', result)
 
 @socketio.on('reset')
 def reset():
     global buzz_order
     buzz_order = []
-    socketio.emit('update', buzz_order)
+    socketio.emit('update', [])
 
 
 # ---------------- RUN ---------------- #
