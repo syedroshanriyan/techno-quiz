@@ -12,16 +12,39 @@
 <div id="list" class="text-2xl sm:text-4xl space-y-2"></div>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
 <script>
 const socket = io({
-  transports: ["polling", "websocket"],
-  upgrade: true
+  transports: ["polling", "websocket"]
 });
 
-socket.on("update", data=>{
-  document.getElementById("list").innerHTML =
-    data.map(x=>`${x.rank}. ${x.team}`).join("<br>");
+// ✅ CONNECTION DEBUG
+socket.on("connect", () => {
+  console.log("✅ Board Connected:", socket.id);
+});
+
+socket.on("connect_error", (err) => {
+  console.log("❌ Connection Error:", err);
+});
+
+// 🔥 RECEIVE BUZZ RESULTS
+socket.on("update", (data) => {
+  console.log("📊 UPDATE RECEIVED:", data);
+
+  const list = document.getElementById("list");
+
+  if (!data || data.length === 0) {
+    list.innerHTML = "<p class='text-gray-400'>No buzz yet</p>";
+    return;
+  }
+
+  list.innerHTML = data.map(x => `
+    <div class="bg-white/10 px-6 py-3 rounded-xl">
+      ${x.rank}. ${x.team}
+    </div>
+  `).join("");
 });
 </script>
+
 </body>
 </html>
