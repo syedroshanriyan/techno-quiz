@@ -13,6 +13,8 @@ buzz_order = []
 buzzer_enabled = False
 
 
+# ---------------- ROUTES ---------------- #
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -49,28 +51,37 @@ def board():
     return render_template('board.html')
 
 
+# ---------------- CORE LOGIC ---------------- #
+
+def get_result():
+    sorted_data = sorted(buzz_order, key=lambda x: x["time"])
+    return [{"team": t["team"], "rank": i+1} for i, t in enumerate(sorted_data)]
+
+
 # ---------------- SOCKET ---------------- #
+
+@socketio.on('connect')
+def connect():
+    print("Connected:", request.sid)
+    socketio.emit('team_list', registered)
+    socketio.emit('buzzer_state', buzzer_enabled)
+    socketio.emit('update', get_result())
+
 
 @socketio.on('request_update')
 def request_update():
-    sorted_data = sorted(buzz_order, key=lambda x: x["time"])
+    socketio.emit('update', get_result(), to=request.sid)
 
-    result = []
-    for i, t in enumerate(sorted_data):
-        result.append({
-            "team": t["team"],
-            "rank": i + 1
-        })
-
-    socketio.emit('update', result)
 
 @socketio.on('disconnect')
 def disconnect():
     print("Disconnected:", request.sid)
+
     if request.sid in teams:
         team = teams.pop(request.sid)
         if team in registered:
             registered.remove(team)
+
     socketio.emit('team_list', registered)
 
 
@@ -107,37 +118,22 @@ def buzz():
     if not team:
         return
 
-    # prevent duplicate
     if any(t['team'] == team for t in buzz_order):
         return
 
-    # store only time + team
     buzz_order.append({
         "team": team,
         "time": time.time()
     })
 
-    # sort by time
-    sorted_data = sorted(buzz_order, key=lambda x: x["time"])
-
-    # create clean ranked list
-    result = []
-    for i, t in enumerate(sorted_data):
-        result.append({
-            "team": t["team"],
-            "rank": i + 1
-        })
-
-    print("RESULT:", result)
-
-    socketio.emit('update', result)
+    socketio.emit('update', get_result())
 
 
 @socketio.on('reset')
 def reset():
     global buzz_order
     buzz_order = []
-    socketio.emit('update', buzz_order)
+    socketio.emit('update', [])
 
 
 # ---------------- RUN ---------------- #
