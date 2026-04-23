@@ -26,7 +26,22 @@ let enabled = false;
 socket.emit("register", {team});
 
 socket.on("buzzer_state", s=>{
+  console.log("STATE RECEIVED:", s);   // 🔥 ADD THIS
+
   enabled = s;
+
+  const btn = document.getElementById("btn");
+  const st = document.getElementById("status");
+
+  if(s){
+    st.innerText="GO";
+    btn.disabled=false;
+    btn.className="w-40 h-40 rounded-full bg-red-600";
+  }else{
+    st.innerText="LOCKED";
+    btn.disabled=true;
+    btn.className="w-40 h-40 rounded-full bg-gray-600";
+  }
 });
 
 function buzz(){
