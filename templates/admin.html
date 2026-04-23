@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-black text-white p-10">
+
+<h1 class="text-3xl mb-6">Admin Panel</h1>
+
+<div class="grid grid-cols-2 gap-6">
+
+<div class="bg-white/10 p-4 rounded">
+<h3>Teams</h3>
+<div id="teams"></div>
+</div>
+
+<div class="bg-white/10 p-4 rounded">
+
+<h3>Status: <span id="state">LOCKED</span></h3>
+
+<button onclick="toggle()" id="toggleBtn"
+  class="mt-4 w-full bg-green-600 p-3 rounded">
+  UNLOCK
+</button>
+
+<button onclick="reset()" class="mt-4 w-full bg-yellow-500 p-3 rounded">
+  RESET
+</button>
+
+<a href="/board">
+<button class="mt-4 w-full bg-purple-600 p-3 rounded">
+  VIEW BOARD
+</button>
+</a>
+
+</div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+
+socket.on("team_list", t=>{
+  document.getElementById("teams").innerHTML=t.join("<br>");
+});
+
+socket.on("buzzer_state", s=>{
+  const st=document.getElementById("state");
+  const btn=document.getElementById("toggleBtn");
+
+  if(s){
+    st.innerText="UNLOCKED";
+    btn.innerText="LOCK";
+    btn.className="mt-4 w-full bg-red-600 p-3 rounded";
+  }else{
+    st.innerText="LOCKED";
+    btn.innerText="UNLOCK";
+    btn.className="mt-4 w-full bg-green-600 p-3 rounded";
+  }
+});
+
+function toggle(){ socket.emit("toggle"); }
+function reset(){ socket.emit("reset"); }
+</script>
+</body>
+</html>

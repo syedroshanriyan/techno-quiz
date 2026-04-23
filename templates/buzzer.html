@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-black text-white flex flex-col items-center justify-center h-screen">
+
+<h2 class="mb-4">Team: {{ team }}</h2>
+
+<h1 id="status" class="text-4xl mb-6">LOCKED</h1>
+
+<button id="btn" onclick="buzz()" class="w-40 h-40 rounded-full bg-gray-600 text-2xl">
+  BUZZ
+</button>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const team="{{ team }}";
+let enabled=false;
+
+socket.emit("register",{team});
+
+socket.on("buzzer_state", s=>{
+  enabled=s;
+  const btn=document.getElementById("btn");
+  const st=document.getElementById("status");
+
+  if(s){
+    st.innerText="GO";
+    btn.disabled=false;
+    btn.className="w-40 h-40 rounded-full bg-red-600";
+  }else{
+    st.innerText="LOCKED";
+    btn.disabled=true;
+    btn.className="w-40 h-40 rounded-full bg-gray-600";
+  }
+});
+
+function buzz(){
+  if(!enabled) return;
+  socket.emit("buzz");
+  document.getElementById("status").innerText="BUZZED";
+}
+</script>
+</body>
+</html>
