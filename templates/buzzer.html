@@ -22,38 +22,55 @@ class="bg-gray-600 rounded-full flex items-center justify-center
 </button>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
 <script>
 const socket = io({
   transports: ["polling", "websocket"]
 });
 
 const team = "{{ team }}";
+
 let enabled = false;
 
-socket.emit("register", {team});
+// register team
+socket.emit("register", { team });
 
-socket.on("buzzer_state", s=>{
-  console.log("STATE RECEIVED:", s);   // 🔥 ADD THIS
+// 🔥 LIVE STATUS LISTENER
+socket.on("buzzer_state", (state) => {
+  console.log("STATE:", state);
 
-  enabled = s;
+  enabled = state;
 
   const btn = document.getElementById("btn");
-  const st = document.getElementById("status");
+  const status = document.getElementById("status");
 
-  if(s){
-    st.innerText="GO";
-    btn.disabled=false;
-    btn.className="w-40 h-40 rounded-full bg-red-600";
-  }else{
-    st.innerText="LOCKED";
-    btn.disabled=true;
-    btn.className="w-40 h-40 rounded-full bg-gray-600";
+  if (state) {
+    // ✅ UNLOCKED
+    status.innerText = "UNLOCKED";
+    status.className = "text-4xl mb-6 text-green-400";
+
+    btn.disabled = false;
+    btn.classList.remove("bg-gray-600");
+    btn.classList.add("bg-red-600");
+  } else {
+    // ❌ LOCKED
+    status.innerText = "LOCKED";
+    status.className = "text-4xl mb-6 text-red-500";
+
+    btn.disabled = true;
+    btn.classList.remove("bg-red-600");
+    btn.classList.add("bg-gray-600");
   }
 });
 
-function buzz(){
-  if(!enabled) return;
+// BUZZ ACTION
+function buzz() {
+  if (!enabled) return;
+
   socket.emit("buzz");
+
+  document.getElementById("status").innerText = "BUZZED";
+  document.getElementById("btn").disabled = true;
 }
 </script>
 </body>
