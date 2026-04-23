@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-black text-white flex flex-col items-center justify-center h-screen">
+<body class="bg-black text-white min-h-screen flex flex-col justify-between">
 
 <h2 class="mb-4">Team: {{ team }}</h2>
 
 <h1 id="status" class="text-4xl mb-6">LOCKED</h1>
 
-<button id="btn" onclick="buzz()" class="w-40 h-40 rounded-full bg-gray-600 text-2xl">
+<button id="btn"
+class="bg-gray-600 rounded-full flex items-center justify-center
+       text-white font-bold
+       w-[60vw] h-[60vw]
+       max-w-[300px] max-h-[300px]
+       text-3xl sm:text-5xl
+       transition active:scale-90">
   BUZZ
 </button>
 
