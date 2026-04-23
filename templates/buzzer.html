@@ -29,48 +29,31 @@ const socket = io({
 });
 
 const team = "{{ team }}";
-
 let enabled = false;
 
-// register team
-socket.emit("register", { team });
-
-// 🔥 LIVE STATUS LISTENER
-socket.on("buzzer_state", (state) => {
-  console.log("STATE:", state);
-
-  enabled = state;
-
-  const btn = document.getElementById("btn");
-  const status = document.getElementById("status");
-
-  if (state) {
-    // ✅ UNLOCKED
-    status.innerText = "UNLOCKED";
-    status.className = "text-4xl mb-6 text-green-400";
-
-    btn.disabled = false;
-    btn.classList.remove("bg-gray-600");
-    btn.classList.add("bg-red-600");
-  } else {
-    // ❌ LOCKED
-    status.innerText = "LOCKED";
-    status.className = "text-4xl mb-6 text-red-500";
-
-    btn.disabled = true;
-    btn.classList.remove("bg-red-600");
-    btn.classList.add("bg-gray-600");
-  }
+// ✅ REGISTER AFTER CONNECT (CRITICAL)
+socket.on("connect", () => {
+  console.log("CONNECTED:", socket.id);
+  socket.emit("register", { team });
 });
 
-// BUZZ ACTION
+// ✅ RECEIVE LOCK/UNLOCK STATE
+socket.on("buzzer_state", (state) => {
+  enabled = state;
+});
+
+// 🔴 FIXED BUZZ FUNCTION
 function buzz() {
-  if (!enabled) return;
+  console.log("BUTTON CLICKED");
+
+  if (!enabled) {
+    console.log("IGNORED - LOCKED");
+    return;
+  }
+
+  console.log("SENDING BUZZ");
 
   socket.emit("buzz");
-
-  document.getElementById("status").innerText = "BUZZED";
-  document.getElementById("btn").disabled = true;
 }
 </script>
 </body>
