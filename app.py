@@ -54,24 +54,16 @@ def board():
 @socketio.on('connect')
 def connect():
     print("Connected:", request.sid)
+
     socketio.emit('team_list', registered)
     socketio.emit('buzzer_state', buzzer_enabled)
     socketio.emit('update', buzz_order)
 
 
-@socketio.on('disconnect')
-def disconnect():
-    print("Disconnected:", request.sid)
-    if request.sid in teams:
-        team = teams.pop(request.sid)
-        if team in registered:
-            registered.remove(team)
-    socketio.emit('team_list', registered)
-
-
 @socketio.on('register')
 def register(data):
     team = data.get('team')
+
     if not team:
         return
 
@@ -80,46 +72,43 @@ def register(data):
     if team not in registered:
         registered.append(team)
 
+    print("Registered:", team)
+
     socketio.emit('team_list', registered)
-    socketio.emit('buzzer_state', buzzer_enabled)
-
-
-@socketio.on('toggle')
-def toggle():
-    global buzzer_enabled
-    buzzer_enabled = not buzzer_enabled
-
-    print("Buzzer State:", buzzer_enabled)
-
-    # 🔥 FORCE BROADCAST TO ALL CLIENTS
-    socketio.emit('buzzer_state', buzzer_enabled,)
 
 
 @socketio.on('buzz')
 def buzz():
     global buzz_order
 
+    print("BUZZ RECEIVED")   # 🔥 DEBUG
+
     if not buzzer_enabled:
+        print("IGNORED - LOCKED")
         return
 
     team = teams.get(request.sid)
+
     if not team:
+        print("NO TEAM FOUND")
         return
 
-    # prevent duplicate buzz
+    # prevent duplicate
     if any(t['team'] == team for t in buzz_order):
+        print("DUPLICATE")
         return
 
-    # store with timestamp
-    buzz_order.append({
+    entry = {
         "team": team,
         "time": time.time()
-    })
+    }
 
-    # sort by time (fastest first)
+    buzz_order.append(entry)
+
+    # sort by time
     buzz_order = sorted(buzz_order, key=lambda x: x["time"])
 
-    # assign rank
+    # assign ranks
     result = []
     for i, t in enumerate(buzz_order):
         result.append({
@@ -127,14 +116,17 @@ def buzz():
             "rank": i + 1
         })
 
+    print("UPDATED ORDER:", result)   # 🔥 DEBUG
+
     socketio.emit('update', result)
+
 
 @socketio.on('reset')
 def reset():
     global buzz_order
     buzz_order = []
+    print("RESET DONE")
     socketio.emit('update', [])
-
 
 # ---------------- RUN ---------------- #
 
