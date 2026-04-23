@@ -92,7 +92,7 @@ def toggle():
     print("Buzzer State:", buzzer_enabled)
 
     # 🔥 FORCE BROADCAST TO ALL CLIENTS
-    socketio.emit('buzzer_state', buzzer_enabled, broadcast=True)
+    socketio.emit('buzzer_state', buzzer_enabled,)
 
 
 @socketio.on('buzz')
