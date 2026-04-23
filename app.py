@@ -88,7 +88,11 @@ def register(data):
 def toggle():
     global buzzer_enabled
     buzzer_enabled = not buzzer_enabled
-    socketio.emit('buzzer_state', buzzer_enabled)
+
+    print("Buzzer State:", buzzer_enabled)
+
+    # 🔥 FORCE BROADCAST TO ALL CLIENTS
+    socketio.emit('buzzer_state', buzzer_enabled, broadcast=True)
 
 
 @socketio.on('buzz')
