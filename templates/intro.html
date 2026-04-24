@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body {
+  margin: 0;
+  background: black;
+  color: white;
+  font-family: Arial;
+}
+
+/* pages */
+.page {
+  display: none;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  transition: opacity 1s ease;
+}
+.active { display: flex; }
+
+/* video */
+#intro video {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tap-msg {
+  position: absolute;
+  bottom: 40px;
+  font-size: 22px;
+  color: #00e676;
+}
+
+/* header */
+.typing-header {
+  font-size: 50px;
+  color: #00e676;
+  margin-bottom: 30px;
+  white-space: nowrap;
+}
+
+/* cursor */
+.cursor::after {
+  content: "|";
+  margin-left: 5px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%,50%,100% { opacity: 1; }
+  25%,75% { opacity: 0; }
+}
+
+/* profile */
+.profile-card {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: 1s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.profile-card.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* fade out */
+.fade-out {
+  opacity: 0 !important;
+}
+
+/* avatar */
+.avatar {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  padding: 4px;
+  background: #00e676;
+}
+.avatar-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.avatar-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.name {
+  font-size: 40px;
+  margin-top: 10px;
+  letter-spacing: 1px;
+  word-spacing: 5px;
+}
+
+.username { opacity: 0; color: #aaa; }
+.roles { opacity: 0; color: #00e676; }
+</style>
+</head>
+
+<body>
+
+<!-- VIDEO -->
+<div id="intro" class="page active">
+  <video id="video" playsinline>
+    <source src="/static/intro.mp4">
+  </video>
+  <div id="tap" class="tap-msg">Tap or Press Space</div>
+</div>
+
+<!-- PROFILE -->
+<div id="profile" class="page">
+  <div id="header" class="typing-header"></div>
+
+  <div class="profile-card" id="card">
+    <div class="avatar">
+      <div class="avatar-inner">
+        <img src="/static/profile.jpeg">
+      </div>
+    </div>
+
+    <h1 id="name" class="name"></h1>
+    <p id="username" class="username">mr.White Hat | sdroxryn</p>
+    <br>
+    <div id="roles" class="roles">
+      Developer • Designer • Creator
+    </div>
+  </div>
+</div>
+
+<script>
+let current="intro";
+const video=document.getElementById("video");
+
+// start video
+function start(){
+  if(current!=="intro") return;
+  document.getElementById("tap").style.display="none";
+  video.play();
+}
+
+document.onclick=start;
+document.onkeydown=(e)=>{
+  if(e.code==="Space"){
+    e.preventDefault();
+    start();
+  }
+};
+
+// typing with cursor
+function type(text, el, speed=100){
+  return new Promise(resolve=>{
+    let i=0;
+    el.innerHTML="";
+    el.classList.add("cursor");
+
+    function t(){
+      if(i<text.length){
+        el.innerHTML += text[i]===" " ? "&nbsp;" : text[i];
+        i++;
+        setTimeout(t,speed);
+      } else {
+        el.classList.remove("cursor");
+        resolve();
+      }
+    }
+    t();
+  });
+}
+
+// delay helper
+function delay(ms){
+  return new Promise(res=>setTimeout(res,ms));
+}
+
+// FLOW
+video.onended = async () => {
+
+  show("profile");
+
+  // 1️⃣ header typing
+  await type("Designed & Developed by", document.getElementById("header"), 80);
+
+  await delay(500);
+
+  // 2️⃣ profile appears after 2 sec
+  await delay(2000);
+  document.getElementById("card").classList.add("show");
+
+  await delay(1000);
+
+  // 3️⃣ name typing
+  await type("Syed Roshan Riyan", document.getElementById("name"), 110);
+
+  await delay(400);
+
+  // 4️⃣ username
+  const username = document.getElementById("username");
+  username.style.transition="opacity 1s";
+  username.style.opacity=1;
+
+  await delay(400);
+
+  // 5️⃣ roles
+  const roles = document.getElementById("roles");
+  roles.style.transition="opacity 1s";
+  roles.style.opacity=1;
+
+  // 6️⃣ hold screen
+  await delay(4000);
+
+  // 7️⃣ fade out
+  document.getElementById("profile").classList.add("fade-out");
+
+  await delay(1000);
+
+  // 8️⃣ redirect
+  window.location.href="/home";
+};
+
+function show(p){
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  document.getElementById(p).classList.add("active");
+  current=p;
+}
+</script>
+
+</body>
+</html>
